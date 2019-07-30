@@ -22,7 +22,7 @@ the UnLock stage (See Workflow).
       a model in which the answer is revealed without the Message Sender knowing the answer
       to emulate Zero Knowledge. This requires that the options provided are discrete or 
       at least bounded. The final contract can then return aggregated data only, without showing 
-      Alice's selection (BTW: The example has only 1 entry 8-), so no much to hide there)  
+      Alice's selection (BTW: The Java example has only 1 entry, so not much of a guess to mask the detail; not much to hide there)  
 - `5` Transaction is unlocked, and could be trigger payable events (e.g. rewards or other 
       payments).
 
