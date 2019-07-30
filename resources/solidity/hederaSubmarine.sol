@@ -30,7 +30,6 @@ contract hashgraphSubmarine {
     // Storage //
     /////////////
 
-    // ** JSilver  **
     // Hedera does not process blocks but timestamp. We will resolve the reveal
     // by adding the block number to the timestamp and compare it to the block 
     // timestamp during the reveal. Put 20x1000 to map 20 secs, and move uint256
@@ -44,17 +43,15 @@ contract hashgraphSubmarine {
     // unlocked are both greater than zero, and the amount for the unlock is
     // greater than or equal to the reveal amount.
     struct SubmarineSession {
-        // ** JSilver  **
+    
         // Amount the reveal transaction revealed would be sent in tiniBar. 
         // This reflects the amount paid when submitting the submarine
         uint96 amount;
-        // ** JSilver  **
         // Amount the unlock transaction in tinibar. When greater than
         // zero, the submarine has been unlocked; however the submarine may not
         // be finished, until the unlock amount is GREATER or EQUAL than the promised
         // revealed amount.
         uint96 amountUnlocked;
-        // ** JSilver  **
         // Received timestamp when storing the Submarine (uint256)
         uint  commitFairstamp;
         // Second Key Hash with (sendingAddress+receivingAddress+Witness ) (uint256)
@@ -218,7 +215,7 @@ contract hashgraphSubmarine {
             "Incorrect reveal Second Key"
         );
 
-        // fullCommit = (addressA + addressC + aux(sendAmount) + dappData + w + aux(gasPrice) + aux(gasLimit))
+        // fullCommit = (addressA + addressC + aux(sendAmount) + Options + Witness(Phrase) + dappData )
         bytes32 submarineIdProof = getSubmarineId(
             msg.sender,
             address(this),
@@ -227,6 +224,8 @@ contract hashgraphSubmarine {
             _witness,
             _embeddedDAppData
         );
+
+        // It is not Require since we allow Zero Knowledge to complete the First Key
         if ( submarineIdProof != submarineId ) return;
 
         //Mark the line as revealed
