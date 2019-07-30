@@ -21,20 +21,20 @@ the UnLock stage (See Workflow).
 - `4` Once the keys are revealed, the data could be stored for further use. I have included
       a model in which the answer is revealed without the Message Sender knowing the answer
       to emulate Zero Knowledge. This requires that the options provided are discrete or 
-      at least bounded. The final contract can then return summarized answers ONLY, without showing 
-      the Alice's selection.
+      at least bounded. The final contract can then return aggregated data only, without showing 
+      Alice's selection (BTW: The example has only 1 entry 8-), so no much to hide there)  
 - `5` Transaction is unlocked, and could be trigger payable events (e.g. rewards or other 
       payments).
 
 -----------
 # Workflow:
-- Alice generates keys offline
-- Alice builds transaction and sends to Hedera EVM (Online).
-  NOTE: Memo field could be usedto transport the secret phrase or passed to the intended receipient 
+- Alice generates keys offline, including her option, payment and secret phrase. No that the Secret Phrase can be provided (using randomizer or provided by the user). Both options are included in the code.
+- Alice sends the transaction with the keys and sends to Hedera EVM (Online).
+  NOTE: Memo field may be used to broadcast the secret phrase or passed to the intended receipient 
   off-line. No one but the intended receipient can reveal the transaction, and cannot occur
   before predefined time.
 - (Time passes)
-- Address defined by Alice needs to send a transaction that reveals the content of the initial sent.
+- Address defined by Alice sends a transaction to reveal the content of the initial sent. Data is stored in a Results structure, to be used for querying the results.
 - The Submarine keeps the contents private, releasing only summarized data. I left the broadcasting events to
   facilitate comparison to the original libSubmarine.
 
@@ -53,18 +53,18 @@ the transaction.
 I provided smart contract functions to compare the results Online and Offline, following the guidelines 
 of libSubmarines.
 
-The vote is added to the Smart Contract; but since Reads are time-protected in the contract, the function
-calls can only complete when certain time has passed (defined for the Constructor as DURATION).
+The vote is added to the Smart Contract; because Reads are time-protected in the contract, the function
+calls can only return results when certain time has passed (defined for the Constructor as DURATION).
 
 Once DURATION, Alice sends the reveal (without specifying her vote); the SC certifies that 
 the Secret Phrase can generate the Second Key, and with that the Submarine validates the full message given 
-can generate the primary key.
+is the one that can generate the primary key. Then the submarine session is closed.
 
 In this example, the Option selected by Alice is not provided, so the Smart Contract iterates for an 
 array of alternatives to validate a match; the correct combination is stored in the Results table (private).
 Then, the Smart Contract triggers the Unlock Function and closes the submarine.
 
-Reads are made using full calls to update the Block-timestamp provided by the Consensus.
+Reads are made using full calls to update the Block-timestamp provided by the Hedera Consensus.
 
 -------------
 # Other use cases
