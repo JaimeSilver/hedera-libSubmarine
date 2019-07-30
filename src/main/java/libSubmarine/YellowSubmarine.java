@@ -6,13 +6,14 @@ import java.util.Date;
 import java.util.Random;
 
 import com.hedera.accountWrappers.AccountCreate;
+import com.hedera.sdk.common.HederaKeyPair;
+import com.hedera.sdk.common.HederaKeyPair.KeyType;
+
 import com.hedera.contractWrappers.ContractFunctionsWrapper;
 import com.hedera.contractWrappers.ContractCreate;
 import com.hedera.fileWrappers.FileCreate;
 import com.hedera.utilities.ExampleUtilities;
 import com.hedera.sdk.account.HederaAccount;
-import com.hedera.sdk.common.HederaKeyPair;
-import com.hedera.sdk.common.HederaKeyPair.KeyType;
 import com.hedera.sdk.common.HederaTransactionAndQueryDefaults;
 import com.hedera.sdk.common.HederaTransactionRecord;
 import com.hedera.sdk.common.Utilities;
@@ -20,9 +21,7 @@ import com.hedera.sdk.contract.HederaContract;
 import com.hedera.sdk.file.HederaFile;
 
 import org.bouncycastle.util.encoders.Hex;
-import org.ethereum.core.CallTransaction;
 import org.ethereum.crypto.HashUtil;
-import org.ethereum.solidity.SolidityType.IntType;
 import org.ethereum.util.ByteUtil;
 
 import libSubmarine.utils.Numeric;
@@ -55,7 +54,7 @@ public final class YellowSubmarine {
 
 		HederaContract mainSubmarine = new HederaContract();
 		long gas = 0;
-		byte[] constructorData = wrapper.constructor(20); // Default 20 seconds for duration
+		byte[] constructorData = wrapper.constructor(40); // Default 40 seconds for duration
 
 		// create a file
 		// new file object
@@ -227,13 +226,13 @@ public final class YellowSubmarine {
 			/*
 			 * Make sure that the options are in the Contract
 			 */
-			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "ALF")) {
-				ExampleUtilities.showResult("*** Creating ALF in Contract");
-				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "ALF");
-			}
 			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "KERMIT")) {
 				ExampleUtilities.showResult("*** Creating KERMIT in Contract");
 				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "KERMIT");
+			}
+			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "ALF")) {
+				ExampleUtilities.showResult("*** Creating ALF in Contract");
+				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "ALF");
 			}
 			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "DORA")) {
 				ExampleUtilities.showResult("*** Creating DORA in Contract");
@@ -264,7 +263,7 @@ public final class YellowSubmarine {
 			/*
 			 * Workflow
 			 * 
-			 * 3) ONLINE: Address registred in the submarine sends the Reveal
+			 * 3) ONLINE: Address registred in the submarine sends the Reveal 
 			 */
 			ExampleUtilities.showResult("*** Revealing the vote");
 			if (wrapper.callBoolean(mainSubmarine, 10000000, 0, "revealOption", addressKeccak256(result0), dappData,
@@ -283,8 +282,6 @@ public final class YellowSubmarine {
 			
 			ExampleUtilities.showResult("*** Getting the vote");
 			// Since we are validating TX.Timestamp HAS to be a CALL, not CALL Local
-			// voteNumber = wrapper.callLocalLong(mainSubmarine, 10000000, 50000,
-			// "countPoll");
 			voteNumber = wrapper.callLong(mainSubmarine, 10000000, 0, "countPoll");
 			ExampleUtilities.showResult("Number of Votes       " + Long.toString(voteNumber));
 			Long votesALF = wrapper.callLong(mainSubmarine, 10000000, 0, "getTally", "ALF");
