@@ -39,7 +39,7 @@ the UnLock stage (See Workflow).
   facilitate comparison to the original libSubmarine.
 
 -----------
-# Test case 
+# Test case Poll 
 
 Prerequisites:
 Install Java SDK for Hedera; validate release (currently model was developed with 0.3.0).
@@ -65,6 +65,21 @@ array of alternatives to validate a match; the correct combination is stored in 
 Then, the Smart Contract triggers the Unlock Function and closes the submarine.
 
 Reads are made using full calls to update the Block-timestamp provided by the Hedera Consensus.
+
+-----------
+# Test case Guessing Game
+
+This patter uses 2 contracts: one to manage the submarine sessions, and another to bank the incoming Hbars.
+
+The Dapp calculates a random number (00 to 99) and assigns it as the Witness Phrase. Since the two addresses
+are known, the Dapp can derive the Second Key.
+
+The primary key is generated adding the Prize amount that is to be paid if the winner solves the puzzle: 500 tinibars
+All other parameters are left blank (null).
+
+The Bank Smart Contract receives the total Prize amount from Alice in a Payable Call, and works as custody.
+Bob submits the first guess to the bank paying 10 tinibars; the Bank-SC mirrors it to the Submarine, and if it solves
+the puzzle, rewards the original msg sender (tx.origin) with the msg. Then the submarine send is complete. 
 
 -------------
 # Other use cases
