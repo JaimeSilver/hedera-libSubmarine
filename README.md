@@ -30,11 +30,11 @@ the UnLock stage (See Workflow).
 # Workflow:
 - Alice generates keys offline, including her option, payment and secret phrase. No that the Secret Phrase can be provided (using randomizer or provided by the user). Both options are included in the code.
 - Alice sends the transaction with the keys and sends to Hedera EVM (On-chain).
-  NOTE: Memo field may be used to broadcast the secret phrase or passed to the intended receipient 
-  off-line. No one but the intended receipient can reveal the transaction, and cannot occur
+  NOTE: Memo field may be used to broadcast the secret phrase or passed to the intended recipient 
+  off-chain. No one but the intended recipient can reveal the transaction, and cannot occur
   before predefined time.
 - (Time passes)
-- Address defined by Alice sends a transaction to reveal the content of the initial sent. Data is stored in a Results structure, to be used for querying the results.
+- Address defined by Alice sends a transaction to reveal the content of the initial send. Data is stored in a Results structure, to be used for querying the results.
 - The Submarine keeps the contents private, releasing only summarized data. I left the broadcasting events to
   facilitate comparison to the original libSubmarine.
 
@@ -43,7 +43,7 @@ the UnLock stage (See Workflow).
 
 Prerequisites:
 Install Java SDK for Hedera; validate release (currently model was developed with 0.3.0).
-Run MVN Install for the project; the POM provided has all requisites, and also generates a runnable 
+Then run a MVN Install for the project; the POM provided has all requisites, and also generates a runnable 
 JAR in the Root folder with a -run (suffix).
 Complete the the node.properties with your Private and Public keys.
 
@@ -85,7 +85,7 @@ the puzzle, the contracts rewards the original msg sender (tx.origin) with the m
 # Other use cases
 The model is useful for multiple applications, including Voting, Auctions, Close Bids, and Gambling Dapps.
 Please review the GitHub repository of libSubmarine (https://github.com/lorenzb/libsubmarine), since
-some of the Solidity contracts presented (ERC20 cover pruchases & ERC721 Auction ) could be extended
+some of the Solidity contracts presented (ERC20 cover purchases & ERC721 Auction ) could be extended
 for Hedera.
 
 -------------
