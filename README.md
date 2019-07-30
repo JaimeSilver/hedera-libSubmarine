@@ -5,10 +5,10 @@ This repository follows some of the design patters proposed by libSubmarines
 (https://libsubmarine.org/) for Ethereum, but goes beyond defeating Front-Runners, 
 since that is already solved by Hashgraph's Gossip-about-Gossip and Fair timestamping.
 
-The model proposed facilitates transaction calls to contracts with the later reveal of 
-the contents of a message. I have included a library in Solidity that servers as a 
-reference for the actual contract, including remuneration during the UnLock step.
-
+The model proposed facilitates transaction calls to contracts with the later reveal (full 
+or partial) of the message content. I have included a library in Solidity that servers as a 
+reference for the Poll contract; the model can be extended to include remuneration during 
+the UnLock stage (See Workflow).
 
 **This is a work-in-progress implementation of better submarine sends for Hashgraph.**
 
