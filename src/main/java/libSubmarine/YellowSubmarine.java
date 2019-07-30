@@ -248,14 +248,14 @@ public final class YellowSubmarine {
 			wrapper.callLong(mainSubmarine, 10000000, 0, "registry", addressKeccak256(result0),
 					addressKeccak256(result1));
 
-			ExampleUtilities.showResult("*** countPoll   may revert if it is not time yet ***");
+			ExampleUtilities.showResult("*** countPoll   may revert if it is not time yet");
 			try {
 				// voteNumber = wrapper.callLocalLong(mainSubmarine, 10000000, 50000,
 				// "countPoll");
 				voteNumber = wrapper.callLong(mainSubmarine, 10000000, 0, "countPoll");
 				ExampleUtilities.showResult("Number of Votes          " + Long.toString(voteNumber));
 			} catch (Exception e) {
-				ExampleUtilities.showResult("*** YEP failed!! ***");
+				ExampleUtilities.showResult("*** YEP failed!! ");
 			}
 			ExampleUtilities.showResult("*** Waiting 30 seconds");
 			Thread.sleep(30000);
@@ -268,8 +268,8 @@ public final class YellowSubmarine {
 			ExampleUtilities.showResult("*** Revealing the vote");
 			if (wrapper.callBoolean(mainSubmarine, 10000000, 0, "revealOption", addressKeccak256(result0), dappData,
 					"LA VACA LOLA", 0)) {
-				ExampleUtilities.showResult("*** Voting was revealed                          ***");
-				ExampleUtilities.showResult("*** Waiting for Consensus to replicate the State ***");				
+				ExampleUtilities.showResult("*** Voting was revealed                          ");
+				ExampleUtilities.showResult("*** Waiting for Consensus to replicate the State ");				
 				Thread.sleep(3000);
 			}
 			/*

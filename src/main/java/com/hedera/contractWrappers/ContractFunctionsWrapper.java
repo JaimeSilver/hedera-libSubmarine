@@ -140,19 +140,19 @@ public class ContractFunctionsWrapper {
 			encodedFunc = function.encode(parameterValues);
 		}
 
-		ExampleUtilities.showResult("**    CONTRACT RUN LOCAL");
+		//ExampleUtilities.showResult("**    CONTRACT RUN LOCAL");
 
 		HederaContractFunctionResult functionResult = new HederaContractFunctionResult();
 		// run a call local query
 		functionResult = contract.callLocal(localGas, encodedFunc, maxResultSize);
 		if (functionResult != null) {
 			// it was successful, print it
-			ExampleUtilities.showResult(String.format("**   Got error message=%s\n"
-					+ "**    Got gas used=%d\n"
-					+ "**    Got contract num=%d"
-					,functionResult.errorMessage()
-					,functionResult.gasUsed()
-					,functionResult.contractID().contractNum));
+			//ExampleUtilities.showResult(String.format("**   Got error message=%s\n"
+			//		+ "**    Got gas used=%d\n"
+			//		+ "**    Got contract num=%d"
+			//		,functionResult.errorMessage()
+			//		,functionResult.gasUsed()
+			//		,functionResult.contractID().contractNum));
 			
 		} else if (contract.getPrecheckResult() == ResponseCodeEnum.BUSY) {
 			logger.info("system busy, try again later");
@@ -235,7 +235,7 @@ public class ContractFunctionsWrapper {
 			encodedFunc = function.encode(parameterValues);
 		}
 
-		ExampleUtilities.showResult("**    CONTRACT CALL");
+		//ExampleUtilities.showResult("**    CONTRACT CALL");
 
 		// call the smart contract
 		// smart contract call transaction
@@ -248,9 +248,9 @@ public class ContractFunctionsWrapper {
 			// was that successful ?
 			if (receipt.transactionStatus == ResponseCodeEnum.SUCCESS) {
 				// and print it out
-				ExampleUtilities.showResult(String.format("**    Smart Contract call success"));
+				//ExampleUtilities.showResult(String.format("**    Smart Contract call success"));
 			} else {
-				ExampleUtilities.showResult("**    TransactionStatus:" + receipt.transactionStatus.toString());
+				//ExampleUtilities.showResult("**    TransactionStatus:" + receipt.transactionStatus.toString());
 //				callResult = null;
 			}
 		} else if (contract.getPrecheckResult() == ResponseCodeEnum.BUSY) {
