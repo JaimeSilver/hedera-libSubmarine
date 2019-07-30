@@ -6,7 +6,7 @@ This repository follows some of the design patters proposed by libSubmarines
 since that is already solved by Hashgraph's Gossip-about-Gossip and Fair timestamping.
 
 The model proposed facilitates transaction calls to contracts with the later reveal (full 
-or partial) of the message content. I have included a library in Solidity that servers as a 
+or partial) of the message content. I have included a library in Solidity that serves as a 
 reference for the Poll contract; the model can be extended to include remuneration during 
 the UnLock stage (See Workflow).
 
