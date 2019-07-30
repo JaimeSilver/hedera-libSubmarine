@@ -32,9 +32,11 @@ public final class YellowSubmarine {
 	public static void main(String... arguments) throws Exception {
 		wrapper.setABIFromFile("./resources/thePoll.abi");
 
-		// create a file with contents
+		// create a file and contract with contents
 		boolean doFileContract = true;
+		// validate Off-cain and On-chain SHA
 		boolean doValidateSHA3 = false;
+		// run and actual vote on the contract
 		boolean runTheVote = true;
 
 		// setup a set of defaults for query and transactions
@@ -44,11 +46,12 @@ public final class YellowSubmarine {
 		// my account
 		HederaAccount myAccount = new HederaAccount();
 
-		// my account is the token issuer
+		// my account is going to generate all transactions.
+		// But this is not a requirement (see Github README)
 		myAccount.txQueryDefaults = txQueryDefaults;
 		txQueryDefaults.fileWacl = txQueryDefaults.payingKeyPair;
 
-		// setup the account number on my account so we can getInfo
+		// setup the account number to process transactions
 		myAccount.accountNum = txQueryDefaults.payingAccountID.accountNum;
 		String userAddress = Utilities.calculateSolidityAddress(txQueryDefaults.payingAccountID.accountNum);
 
@@ -75,12 +78,12 @@ public final class YellowSubmarine {
 				ExampleUtilities.showResult("@@@ The Submarine Contract is  " + mainSubmarine.contractNum);
 			}
 		} else {
-			// Testnet as 20190729
+			// Testnet as 20190729; referenced to speed time (if needed)
 			mainSubmarine.contractNum = 36866;
 		}
 
 		/*
-		 * This option is to try baseline functionality of the LibSubmarine
+		 * This option shows the Off-chain and On-chain options of the LibSubmarine.
 		 */
 		byte[] dappData = new byte[1];
 		byte[][] primaryKey = new byte[6][];
@@ -99,6 +102,10 @@ public final class YellowSubmarine {
 			boolean verdad = true;
 			String opcion = "ALF";
 
+			/*
+			 * The user can decide to use Randomizer or External String
+			 */
+
 			Random rand = new Random();
 			long numb = rand.nextLong();
 			String witness = Long.toString(numb);
@@ -109,14 +116,15 @@ public final class YellowSubmarine {
 			witness = "LA VACA LOLA";
 			secondKey[2] = stringKeccak256(witness);// String
 			String result1 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(secondKey)));
+			
+			// Generate Second Key on Hashgraph
 			String hedera1 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSecondKey", address_from,
 					address_to, witness);
 
-			/*
-			 * The user can decide to use Randomizer or External String
-			 */
 
-			// Boolean option is not included in Smart Contract
+			// Boolean option is not included in Smart Contract, but is enabled for future
+			// reference
+			//
 			// primaryKey[6] = booleanKeccak256(verdad); // Boolean
 
 			primaryKey[0] = addressKeccak256(address_from); // Address From
@@ -129,10 +137,11 @@ public final class YellowSubmarine {
 			primaryKey[5] = dappData; // Bytes
 			String result0 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(primaryKey)));
 
-			// Now test to Hashgraph
-			// First the Second Key
+			// Generate First (main) Key on Hashgraph
 			String hedera0 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSubmarineId", address_from,
 					address_to, sendAmount, optionSelected, witness, dappData);
+
+			//Show results on log
 			ExampleUtilities.showResult("Local Witness        " + witness);
 			ExampleUtilities.showResult("Local Secondary Key  " + result1);
 			ExampleUtilities.showResult("Hedera Second Key    " + hedera1);
@@ -141,6 +150,8 @@ public final class YellowSubmarine {
 			ExampleUtilities.showResult("Hedera Submarine Key " + hedera0);
 
 		}
+		
+		//Declare variables for Actual run;
 		String hedera0;
 		String hedera1;
 		String result0;
@@ -152,26 +163,30 @@ public final class YellowSubmarine {
 			 * This example is executed with the same user Calling and Revealing, but the
 			 * user can decide what Address (FROM) is the Reveal going to be invoked.
 			 * 
-			 * The default duration is set for 20 seconds, and during that time, no reads
+			 * The default duration is set for 40 seconds, and during that time, no reads
 			 * are allowed.
 			 * 
 			 * Workflow
 			 * 
-			 * 1) OFFLINE: Using the functions provided, the user generates a Primary and
+			 * 1) OFF-CHAIN: Using the functions provided, the user generates a Primary and
 			 * Secondary Keys We have provided help methods in Solidity to help in this
-			 * process, but it is obvious that the user will not pass the arguments to the
+			 * process, since it is obvious that the user will not pass the arguments to the
 			 * network before the reveal time.
 			 * 
-			 * Get Primary Key: ----> Input: Witnessing Address (address) ----> Contract
-			 * Address (address) ----> Witness string to prove origin (string) <---- Output:
-			 * SecondaryKey in HEX
+			 * Get Primary Key: 
+			 * ----> Input: Witnessing Address (address) 
+			 * ----> Contract Address (address) 
+			 * ----> Witness string to prove origin (string) 
+			 * <---- Output: SecondaryKey in HEX
 			 * 
-			 * Get Secondary Key: ----> Input: Witnessing Address (address) ----> Contract
-			 * Address (address) ----> Commit Value (uint256) In case user wants to support
-			 * payments ----> Option Selected (char32) Option selected for the polling
-			 * process ----> Witness string to prove origin (string) ----> Embedded Data.
-			 * Extension as suggested by libSubmarines <---- Output: PrimaryKey in HEX
-			 * 
+			 * Get Secondary Key: 
+			 * ----> Input: Witnessing Address (address) 
+			 * ----> Contract Address (address) 
+			 * ----> Commit Value (uint256) In case user wants to support payments
+			 * ----> Option Selected (char32) Option selected for the polling options 
+			 * ----> Witness string (Secret Phrase) (string) 
+			 * ----> Embedded Data. Extension as suggested by libSubmarines 
+			 * <---- Output: PrimaryKey in HEX
 			 */
 
 			if (mainSubmarine.contractNum == 0) {
@@ -180,8 +195,8 @@ public final class YellowSubmarine {
 			mainSubmarine.txQueryDefaults = txQueryDefaults;
 			mainSubmarine.getInfo();
 
-			// userAddress is coming from Paying Address;user can decide any Address that
-			// will call the Reveal
+			// userAddress is using the Paying Address;
+			// user can decide the Address sender that will call the Reveal
 			String submarineAddress = Utilities.calculateSolidityAddress(mainSubmarine.contractNum);
 
 			primaryKey[0] = addressKeccak256(userAddress);
@@ -189,10 +204,15 @@ public final class YellowSubmarine {
 			primaryKey[2] = longKeccak256(0);
 			String optionSelected = "ALF";
 			primaryKey[3] = char32Keccak256(optionSelected);
-			primaryKey[4] = stringKeccak256("LA VACA LOLA"); // External Phrase
+			primaryKey[4] = stringKeccak256("LA VACA LOLA"); // Secret Phrase
 			primaryKey[5] = dappData;
 			result0 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(primaryKey)));
-			// Clearly you will not send this to the Network BEFORE reveal
+			
+			/* 
+			 * Clearly you will not send this to the Network BEFORE reveal
+			 * it is provided for testing purposes.
+			 */
+			
 			hedera0 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSubmarineId", userAddress,
 					submarineAddress, 0, optionSelected, "LA VACA LOLA", dappData);
 			ExampleUtilities.showResult("Local Submarine Key  " + result0);
@@ -202,7 +222,12 @@ public final class YellowSubmarine {
 			secondKey[1] = addressKeccak256(submarineAddress);
 			secondKey[2] = stringKeccak256("LA VACA LOLA");
 			result1 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(secondKey)));
-			// Clearly you will not send this to the Network BEFORE reveal
+
+			/* 
+			 * Clearly you will not send this to the Network BEFORE reveal
+			 * it is provided for testing purposes.
+			 */
+
 			hedera1 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSecondKey", userAddress,
 					submarineAddress, "LA VACA LOLA");
 			ExampleUtilities.showResult("Local Secondary Key  " + result1);
@@ -211,7 +236,7 @@ public final class YellowSubmarine {
 			/*
 			 * Workflow
 			 * 
-			 * 2) ONLINE: The system can control voting times and reveal times. In this case
+			 * 2a) ON-CHAIN: The system can control voting times and reveal times. In this case
 			 * they are the same
 			 */
 
@@ -242,7 +267,7 @@ public final class YellowSubmarine {
 			/*
 			 * Workflow
 			 * 
-			 * 2) ONLINE: Register the Primary and secondary keys
+			 * 2b) ON-CHAIN: Register the Primary and secondary keys
 			 */
 			ExampleUtilities.showResult("*** Casting the vote");
 			wrapper.callLong(mainSubmarine, 10000000, 0, "registry", addressKeccak256(result0),
@@ -263,7 +288,7 @@ public final class YellowSubmarine {
 			/*
 			 * Workflow
 			 * 
-			 * 3) ONLINE: Address registred in the submarine sends the Reveal 
+			 * 3) ON-CHAIN: Address registered in the submarine sends the Reveal 
 			 */
 			ExampleUtilities.showResult("*** Revealing the vote");
 			if (wrapper.callBoolean(mainSubmarine, 10000000, 0, "revealOption", addressKeccak256(result0), dappData,
@@ -272,16 +297,16 @@ public final class YellowSubmarine {
 				ExampleUtilities.showResult("*** Waiting for Consensus to replicate the State ");				
 				Thread.sleep(3000);
 			}
+			
 			/*
 			 * Workflow
 			 * 
 			 * 4) ONLINE: Get the results NOTE: Hedera makes block.timestamp = fair order of
-			 * the TX consensus, BUT there could be STALL in Testnet; you may have to
-			 * execute TALLY separate from Casting the vote
+			 * the TX consensus; you need to submit CallFunctions, not CallLocal, to force an update 
+			 * of the status of the State variables (e.g. block.timestamp).
 			 */
 			
 			ExampleUtilities.showResult("*** Getting the vote");
-			// Since we are validating TX.Timestamp HAS to be a CALL, not CALL Local
 			voteNumber = wrapper.callLong(mainSubmarine, 10000000, 0, "countPoll");
 			ExampleUtilities.showResult("Number of Votes       " + Long.toString(voteNumber));
 			Long votesALF = wrapper.callLong(mainSubmarine, 10000000, 0, "getTally", "ALF");
