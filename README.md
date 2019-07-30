@@ -2,8 +2,10 @@
 Implementation of Submarines in Hedera Hashgraph.
 
 Submarines are designed to hide information from the network temporarily, and permit later reveals in Smart Contracts that are prepared to accept them. This mechanism is useful for many scenarios where anonymity or secrecy is vital.
-This repository follows some of the design patterns proposed by libSubmarines (https://libsubmarine.org/) for Ethereum, going beyond defeating Front-Runners which are already solved by Hedera Hashgraph's Gossip-about-Gossip and Fair timestamping Consensus Algorithm features. This pattern does not make use of Submarine Addresses since they are not supported by Hedera.
-This proposed model facilitates transaction calls to contracts where the message’s content is revealed (full or partially) at a later time. I have included a library in Solidity that serves as a reference for the Poll contract; the model can be extended to include remuneration during the UnLock stage (See Workflow).
+
+This repository follows some of the design patterns proposed by libSubmarines (https://libsubmarine.org/) for Ethereum, going beyond defeating Front-Runners which are already solved by Hedera Hashgraph's Gossip-about-Gossip and Fair timestamping Consensus Algorithm features. This pattern does not make use of Submarine Addresses since they are not supported by Hedera; instead, the Smart Contract payable address is used to transfer and receive Hbars.
+
+This model facilitates transaction calls to contracts where the message’s content is revealed (full or partially) at a later time. I have included a library in Solidity that serves as a reference for the Poll contract; the model can be extended to include remuneration during the UnLock stage (See Workflow).
 
 **This is a work-in-progress implementation of better submarine sends for Hashgraph.**
 
