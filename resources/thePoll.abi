@@ -1,0 +1,447 @@
+[
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"name": "_secondId",
+				"type": "bytes32"
+			}
+		],
+		"name": "registry",
+		"outputs": [
+			{
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"name": "_embeddedDAppData",
+				"type": "bytes"
+			},
+			{
+				"name": "_witness",
+				"type": "string"
+			},
+			{
+				"name": "_commitValue",
+				"type": "uint96"
+			}
+		],
+		"name": "revealOption",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_optionSelected",
+				"type": "bytes32"
+			}
+		],
+		"name": "getTally",
+		"outputs": [
+			{
+				"name": "total",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"name": "toWhom",
+				"type": "address"
+			}
+		],
+		"name": "unlock",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			}
+		],
+		"name": "getSubmarineState",
+		"outputs": [
+			{
+				"name": "amount",
+				"type": "uint96"
+			},
+			{
+				"name": "amountUnlocked",
+				"type": "uint96"
+			},
+			{
+				"name": "commitFairstamp",
+				"type": "uint256"
+			},
+			{
+				"name": "secondKey",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"name": "_libsubmarine",
+				"type": "address"
+			},
+			{
+				"name": "_commitValue",
+				"type": "uint256"
+			},
+			{
+				"name": "_commitOptionSelected",
+				"type": "bytes32"
+			},
+			{
+				"name": "_witness",
+				"type": "string"
+			},
+			{
+				"name": "_embeddedDAppData",
+				"type": "bytes"
+			}
+		],
+		"name": "getSubmarineId",
+		"outputs": [
+			{
+				"name": "_key",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "optionToAdd",
+				"type": "bytes32"
+			}
+		],
+		"name": "addOptions",
+		"outputs": [
+			{
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			}
+		],
+		"name": "getSubmarineTimestamp",
+		"outputs": [
+			{
+				"name": "commitFairstamp",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			}
+		],
+		"name": "isSession",
+		"outputs": [
+			{
+				"name": "isIndeed",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			}
+		],
+		"name": "getSubmarineAmount",
+		"outputs": [
+			{
+				"name": "amount",
+				"type": "uint96"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [],
+		"name": "countPoll",
+		"outputs": [
+			{
+				"name": "results",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "option",
+				"type": "bytes32"
+			}
+		],
+		"name": "isOption",
+		"outputs": [
+			{
+				"name": "isIndeed",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"name": "_libsubmarine",
+				"type": "address"
+			},
+			{
+				"name": "_witness",
+				"type": "string"
+			}
+		],
+		"name": "getSecondKey",
+		"outputs": [
+			{
+				"name": "_secondKey",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			}
+		],
+		"name": "revealedAndUnlocked",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "minReadTimestamp",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "optionsToSelect",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "minRevealTimestamp",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "userAddress",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "pollSession",
+				"type": "bytes32"
+			}
+		],
+		"name": "LogNewPoll",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"name": "_commitValue",
+				"type": "uint96"
+			}
+		],
+		"name": "Unlocked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"name": "_commitValue",
+				"type": "uint96"
+			},
+			{
+				"indexed": false,
+				"name": "_witness",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "_commitHash",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"name": "_submarineAddr",
+				"type": "address"
+			}
+		],
+		"name": "Revealed",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"name": "duration",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	}
+]
