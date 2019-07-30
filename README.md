@@ -3,7 +3,7 @@ Implementation of Submarines in Hedera Hashgraph
 
 This repository follows some of the design patters proposed by libSubmarines
 (https://libsubmarine.org/) for Ethereum, but goes beyond defeating Front-Runners, 
-since that process is covered by Gossip-about-Gossip of Hedera Hashgraph.
+since that is already solved by Hashgraph's Gossip-about-Gossip and Fair timestamping.
 
 The model proposed facilitates transaction calls to contracts with the later reveal of 
 the contents of a message. I have included a library in Solidity that servers as a 
