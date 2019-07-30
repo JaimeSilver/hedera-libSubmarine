@@ -29,7 +29,7 @@ the UnLock stage (See Workflow).
 -----------
 # Workflow:
 - Alice generates keys offline, including her option, payment and secret phrase. No that the Secret Phrase can be provided (using randomizer or provided by the user). Both options are included in the code.
-- Alice sends the transaction with the keys and sends to Hedera EVM (Online).
+- Alice sends the transaction with the keys and sends to Hedera EVM (On-chain).
   NOTE: Memo field may be used to broadcast the secret phrase or passed to the intended receipient 
   off-line. No one but the intended receipient can reveal the transaction, and cannot occur
   before predefined time.
@@ -50,7 +50,7 @@ Complete the the node.properties with your Private and Public keys.
 
 The test provided is a Poll with 3 alternatives (ALF, DORA, KERMIT); Alice decides her vote, and sends 
 the transaction.
-I provided smart contract functions to compare the results Online and Offline, following the guidelines 
+I provided smart contract functions to compare the results Onchain and Offchain, following the guidelines 
 of libSubmarines.
 
 The vote is added to the Smart Contract; because Reads are time-protected in the contract, the function
@@ -69,17 +69,17 @@ Reads are made using full calls to update the Block-timestamp provided by the He
 -----------
 # Test case Guessing Game
 
-This patter uses 2 contracts: one to manage the submarine sessions, and another to bank the incoming Hbars.
+This pattern uses 2 contracts: one to manage the submarine sessions and other to bank/route the incoming Hbars and guesses.
 
-The Dapp calculates a random number (00 to 99) and assigns it as the Witness Phrase. Since the two addresses
+The Dapp Off-chain calculates a random number (00 to 99) and assigns it as the Witness Phrase. Since the two addresses
 are known, the Dapp can derive the Second Key.
 
-The primary key is generated adding the Prize amount that is to be paid if the winner solves the puzzle: 500 tinibars
+The primary key is generated adding the Prize amount to be paid if the winner solves the puzzle: 500 tinibars
 All other parameters are left blank (null).
 
-The Bank Smart Contract receives the total Prize amount from Alice in a Payable Call, and works as custody.
-Bob submits the first guess to the bank paying 10 tinibars; the Bank-SC mirrors it to the Submarine, and if it solves
-the puzzle, rewards the original msg sender (tx.origin) with the msg. Then the submarine send is complete. 
+The Bank Smart Contract receives the total Prize amount from Alice in a Payable Call, and serves as custodian.
+Bob submits the first guess to the bank paying 10 tinibars; the Bank-SC mirrors it to the Submarine, and if that number solves
+the puzzle, the contracts rewards the original msg sender (tx.origin) with the msg. Then the submarine session is then complete. 
 
 -------------
 # Other use cases
