@@ -1,0 +1,113 @@
+[
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getBalance",
+		"outputs": [
+			{
+				"name": "_balance",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_gameId",
+				"type": "uint256"
+			}
+		],
+		"name": "isGame",
+		"outputs": [
+			{
+				"name": "isIndeed",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_gameId",
+				"type": "uint256"
+			},
+			{
+				"name": "_embeddedDAppData",
+				"type": "bytes"
+			},
+			{
+				"name": "_witness",
+				"type": "string"
+			},
+			{
+				"name": "_commitValue",
+				"type": "uint96"
+			}
+		],
+		"name": "revealOption",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getSubmarineAddress",
+		"outputs": [
+			{
+				"name": "_guessingGame",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_gameId",
+				"type": "uint256"
+			},
+			{
+				"name": "_submarineId",
+				"type": "bytes32"
+			},
+			{
+				"name": "_secondId",
+				"type": "bytes32"
+			}
+		],
+		"name": "registry",
+		"outputs": [
+			{
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	}
+]

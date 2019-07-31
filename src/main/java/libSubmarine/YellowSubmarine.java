@@ -107,7 +107,7 @@ public final class YellowSubmarine {
 			 */
 
 			Random rand = new Random();
-			long numb = rand.nextLong();
+			long numb = Math.abs(rand.nextLong());
 			String witness = Long.toString(numb);
 			String witnessHex = Long.toHexString(numb);
 
