@@ -1,4 +1,4 @@
-# hedera-libSubmarine
+﻿# hedera-libSubmarine
 Implementation of Submarines in Hedera Hashgraph.
 
 Submarines are designed to hide information from the network temporarily, and permit later reveals in Smart Contracts that are prepared to accept them. This mechanism is useful for many scenarios where anonymity or secrecy is vital, like silent bidding, voting, and closed auctions.
@@ -59,7 +59,7 @@ array of alternatives to validate a match. The correct combination is stored in 
 Reads are made using full calls to update the Block-timestamp provided by the Hedera Consensus.
 
 -----------
-## Test case Guessing Game
+## Test case Guessing Game (Under Construction)
 
 This pattern uses 2 contracts: one to manage the submarine sessions and the other to bank/route the incoming Hbars and guesses.
 
