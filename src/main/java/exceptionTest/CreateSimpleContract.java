@@ -121,11 +121,7 @@ public final class CreateSimpleContract {
 			} catch (HederaException e1) {
 				if (e1.responseCode == ResponseCodeEnum.BUSY) {
 					System.out.println("Found a BUSY response; keep trying");
-					try {
-						Thread.sleep(300);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					Thread.sleep(300);
 				} else {
 					break;
 				}
