@@ -1,36 +1,40 @@
 package libSubmarine;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Random;
-
-import com.hedera.accountWrappers.AccountCreate;
-import com.hedera.sdk.common.HederaKeyPair;
-import com.hedera.sdk.common.HederaKeyPair.KeyType;
-
-import com.hedera.contractWrappers.ContractFunctionsWrapper;
-import com.hedera.contractWrappers.ContractCreate;
-import com.hedera.fileWrappers.FileCreate;
-import com.hedera.utilities.ExampleUtilities;
-import com.hedera.sdk.account.HederaAccount;
-import com.hedera.sdk.common.HederaTransactionAndQueryDefaults;
-import com.hedera.sdk.common.HederaTransactionRecord;
-import com.hedera.sdk.common.Utilities;
-import com.hedera.sdk.contract.HederaContract;
-import com.hedera.sdk.file.HederaFile;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.ethereum.crypto.HashUtil;
 import org.ethereum.util.ByteUtil;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.hedera.hashgraph.sdk.CallParams;
+import com.hedera.hashgraph.sdk.HederaException;
+import com.hedera.hashgraph.sdk.contract.ContractCallQuery;
+import com.hedera.hashgraph.sdk.contract.ContractCreateTransaction;
+import com.hedera.hashgraph.sdk.contract.ContractExecuteTransaction;
+import com.hedera.hashgraph.sdk.contract.ContractId;
+import com.hedera.hashgraph.sdk.examples.ExampleHelper;
+import com.hedera.hashgraph.sdk.examples.advanced.CreateSimpleContract;
+import com.hedera.hashgraph.sdk.file.FileId;
+import com.hedera.hashgraph.sdk.file.FileCreateTransaction;
+//import com.hedera.hashgraph.sdk.proto.ResponseCodeEnum;
+
+import libSubmarine.fileWrappers.FileCreateFullTransaction;
 import libSubmarine.utils.Numeric;
+import java.util.Date;
+import java.util.Random;
 
 public final class YellowSubmarine {
-	static ContractFunctionsWrapper wrapper = new ContractFunctionsWrapper();
-
-	public static void main(String... arguments) throws Exception {
-		wrapper.setABIFromFile("./resources/thePoll.abi");
+	public static void main(String[] args) throws HederaException, IOException, InterruptedException {
+		var cl = CreateSimpleContract.class.getClassLoader();
 
 		// create a file and contract with contents
 		boolean doFileContract = true;
@@ -39,48 +43,59 @@ public final class YellowSubmarine {
 		// run and actual vote on the contract
 		boolean runTheVote = true;
 
-		// setup a set of defaults for query and transactions
-		HederaTransactionAndQueryDefaults txQueryDefaults = ExampleUtilities.getTxQueryDefaults();
-		txQueryDefaults.memo = "Submarine Load";
+		String memoField = "Submarine Load";
 
-		// my account
-		HederaAccount myAccount = new HederaAccount();
+		var operatorKey = ExampleHelper.getOperatorKey();
+		var client = ExampleHelper.createHederaClient().setMaxTransactionFee(834_000_000);
+		ContractId mainSubmarine = new ContractId(0, 0, 37200);
 
-		// my account is going to generate all transactions.
-		// But this is not a requirement (see Github README)
-		myAccount.txQueryDefaults = txQueryDefaults;
-		txQueryDefaults.fileWacl = txQueryDefaults.payingKeyPair;
-
-		// setup the account number to process transactions
-		myAccount.accountNum = txQueryDefaults.payingAccountID.accountNum;
-		String userAddress = Utilities.calculateSolidityAddress(txQueryDefaults.payingAccountID.accountNum);
-
-		HederaContract mainSubmarine = new HederaContract();
-		long gas = 0;
-		byte[] constructorData = wrapper.constructor(40); // Default 40 seconds for duration
-
-		// create a file
-		// new file object
 		if (doFileContract) {
-			HederaFile file = new HederaFile();
-			file.txQueryDefaults = txQueryDefaults;
-			byte[] fileContents = ExampleUtilities.readFile("./resources/thePoll.bin");
-			ExampleUtilities.checkBinFile(fileContents);
-			file = FileCreate.create(file, fileContents);
+			var gson = new Gson();
 
-			// new contract object
-			gas = 2000000;
-			mainSubmarine.txQueryDefaults = txQueryDefaults;
-			mainSubmarine = ContractCreate.create(mainSubmarine, file.getFileID(), gas, 0, constructorData);
-			if (mainSubmarine != null) {
-				mainSubmarine.getInfo();
+			JsonObject jsonObject;
 
-				ExampleUtilities.showResult("@@@ The Submarine Contract is  " + mainSubmarine.contractNum);
+			try (var jsonStream = cl.getResourceAsStream("thePoll.solidity")) {
+				if (jsonStream == null) {
+					throw new RuntimeException("Failed to load thePoll.solidity");
+				}
+
+				jsonObject = gson.fromJson(new InputStreamReader(jsonStream), JsonObject.class);
 			}
+
+			var byteCodeHex = jsonObject.getAsJsonPrimitive("object").getAsString();
+
+			// create the contract's bytecode file
+			FileId newFileId = new FileCreateFullTransaction(client)
+					.setExpirationTime(Instant.now().plus(Duration.ofSeconds(3600)))
+					// Use the same key as the operator to "own" this file
+					.setContents(byteCodeHex.getBytes(), 420_000_000, memoField, operatorKey.getPublicKey());
+
+			System.out.println("contract bytecode file: " + newFileId);
+
+			// create the contract itself
+			var contractTx = new ContractCreateTransaction(client).setAutoRenewPeriod(Duration.ofHours(1))
+					.setGas(217000).setBytecodeFile(newFileId)
+					// Put 40 seconds as DURATION
+					.setConstructorParams(longKeccak256(40)).setAdminKey(operatorKey.getPublicKey()).setMemo(memoField);
+
+			var contractReceipt = contractTx.executeForReceipt();
+
+			// System.out.println( contractReceipt.toProto());
+			var newContractId = contractReceipt.getContractId();
+			System.out.println("The Submarine Contract is  " + newContractId);
+			mainSubmarine = newContractId;
 		} else {
-			// Testnet as 20190729; referenced to speed time (if needed)
-			mainSubmarine.contractNum = 36866;
+			System.out.println("The Submarine Contract is  " + mainSubmarine.getContractNum());
 		}
+
+		/*
+		 * Declare the variables for the Polling run
+		 */
+		String hedera0;
+		String hedera1;
+		String result0;
+		String result1;
+		Long voteNumber;
 
 		/*
 		 * This option shows the Off-chain and On-chain options of the LibSubmarine.
@@ -90,17 +105,13 @@ public final class YellowSubmarine {
 		byte[][] secondKey = new byte[3][];
 
 		if (doValidateSHA3) {
-			if (mainSubmarine.contractNum == 0) {
+			if (mainSubmarine.equals(new ContractId(0, 0, 0))) {
 				return;
 			}
-			mainSubmarine.txQueryDefaults = txQueryDefaults;
-			mainSubmarine.getInfo();
 
 			String address_from = "ca35b7d915458ef540ade6068dfe2f44e8fa733c";
 			String address_to = "1526613135cbe54ee257c11dd17254328a774f4a";
 			long sendAmount = 60000;
-			boolean verdad = true;
-			String opcion = "ALF";
 
 			/*
 			 * The user can decide to use Randomizer or External String
@@ -109,54 +120,62 @@ public final class YellowSubmarine {
 			Random rand = new Random();
 			long numb = Math.abs(rand.nextLong());
 			String witness = Long.toString(numb);
-			String witnessHex = Long.toHexString(numb);
 
-			secondKey[0] = addressKeccak256(address_from); // Address From
-			secondKey[1] = addressKeccak256(address_to); // Address To
+			/*
+			 * Getting the first Key (Local and with ETH
+			 */
+
+			secondKey[0] = addressKeccak256(address_from);
+			secondKey[1] = addressKeccak256(address_to);
 			witness = "LA VACA LOLA";
-			secondKey[2] = stringKeccak256(witness);// String
-			String result1 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(secondKey)));
-			
-			// Generate Second Key on Hashgraph
-			String hedera1 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSecondKey", address_from,
-					address_to, witness);
+			secondKey[2] = stringKeccak256(witness);
+			result1 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(secondKey)));
 
+			// The call to the Hashgraph for the Secondary Key
+			var contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getSecondKey").addAddress(address_from)
+							.addAddress(address_to).addString(witness))
+					.execute();
+			if (contractCallResult.getErrorMessage() != null) {
+				System.out.println("error calling contract: " + contractCallResult.getErrorMessage());
+				return;
+			}
 
-			// Boolean option is not included in Smart Contract, but is enabled for future
-			// reference
-			//
-			// primaryKey[6] = booleanKeccak256(verdad); // Boolean
+			hedera1 = Hex.toHexString(contractCallResult.getRawValue(0).toByteArray());
 
-			primaryKey[0] = addressKeccak256(address_from); // Address From
-			primaryKey[1] = addressKeccak256(address_to); // Address To
-			primaryKey[2] = longKeccak256(sendAmount); // Long
+			/*
+			 * Getting the first Key (Local and with ETH
+			 */
+
+			primaryKey[0] = addressKeccak256(address_from);
+			primaryKey[1] = addressKeccak256(address_to);
+			primaryKey[2] = longKeccak256(sendAmount);
 			String optionSelected = "ALF";
-			primaryKey[3] = char32Keccak256(optionSelected); // Char32
-			witness = "LA VACA LOLA";
-			primaryKey[4] = stringKeccak256(witness);// String
-			primaryKey[5] = dappData; // Bytes
-			String result0 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(primaryKey)));
+			primaryKey[3] = char32Keccak256(optionSelected);
+			primaryKey[4] = stringKeccak256(witness);
+			primaryKey[5] = dappData;
+			result0 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(primaryKey)));
 
-			// Generate First (main) Key on Hashgraph
-			String hedera0 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSubmarineId", address_from,
-					address_to, sendAmount, optionSelected, witness, dappData);
+			// The call to the Hashgraph for the Primary Key
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getSubmarineId").addAddress(address_from)
+							.addAddress(address_to).addUint(sendAmount, 256).addBytes(castBytes32(optionSelected), 32)
+							.addString(witness).addBytes(dappData))
+					.execute();
+			if (contractCallResult.getErrorMessage() != null) {
+				System.out.println("error calling contract: " + contractCallResult.getErrorMessage());
+				return;
+			}
 
-			//Show results on log
-			ExampleUtilities.showResult("Local Witness        " + witness);
-			ExampleUtilities.showResult("Local Secondary Key  " + result1);
-			ExampleUtilities.showResult("Hedera Second Key    " + hedera1);
+			hedera0 = Hex.toHexString(contractCallResult.getRawValue(0).toByteArray());
 
-			ExampleUtilities.showResult("Local Submarine Key  " + result0);
-			ExampleUtilities.showResult("Hedera Submarine Key " + hedera0);
+			// Show results on log System.out.println("Local Witness " + witness);
+			System.out.println("Local Secondary Key  " + result1);
+			System.out.println("Hedera Second Key    " + hedera1);
 
+			System.out.println("Local Submarine Key  " + result0);
+			System.out.println("Hedera Submarine Key " + hedera0);
 		}
-		
-		//Declare variables for Actual run;
-		String hedera0;
-		String hedera1;
-		String result0;
-		String result1;
-		Long voteNumber;
 
 		if (runTheVote) {
 			/*
@@ -173,149 +192,236 @@ public final class YellowSubmarine {
 			 * process, since it is obvious that the user will not pass the arguments to the
 			 * network before the reveal time.
 			 * 
-			 * Get Primary Key: 
-			 * ----> Input: Witnessing Address (address) 
-			 * ----> Contract Address (address) 
-			 * ----> Witness string to prove origin (string) 
-			 * <---- Output: SecondaryKey in HEX
+			 * Get Primary Key: ----> Input: Witnessing Address (address) ----> Contract
+			 * Address (address) ----> Witness string to prove origin (string) <---- Output:
+			 * SecondaryKey in HEX
 			 * 
-			 * Get Secondary Key: 
-			 * ----> Input: Witnessing Address (address) 
-			 * ----> Contract Address (address) 
-			 * ----> Commit Value (uint256) In case user wants to support payments
-			 * ----> Option Selected (char32) Option selected for the polling options 
-			 * ----> Witness string (Secret Phrase) (string) 
-			 * ----> Embedded Data. Extension as suggested by libSubmarines 
-			 * <---- Output: PrimaryKey in HEX
+			 * Get Secondary Key: ----> Input: Witnessing Address (address) ----> Contract
+			 * Address (address) ----> Commit Value (uint256) In case user wants to support
+			 * payments ----> Option Selected (char32) Option selected for the polling
+			 * options ----> Witness string (Secret Phrase) (string) ----> Embedded Data.
+			 * Extension as suggested by libSubmarines <---- Output: PrimaryKey in HEX
 			 */
-
-			if (mainSubmarine.contractNum == 0) {
-				return;
-			}
-			mainSubmarine.txQueryDefaults = txQueryDefaults;
-			mainSubmarine.getInfo();
 
 			// userAddress is using the Paying Address;
 			// user can decide the Address sender that will call the Reveal
-			String submarineAddress = Utilities.calculateSolidityAddress(mainSubmarine.contractNum);
 
+			String submarineAddress = mainSubmarine.toSolidityAddress();
+			var operatorId = ExampleHelper.getOperatorId();
+			String userAddress = operatorId.toSolidityAddress();
 			primaryKey[0] = addressKeccak256(userAddress);
 			primaryKey[1] = addressKeccak256(submarineAddress);
 			primaryKey[2] = longKeccak256(0);
 			String optionSelected = "ALF";
 			primaryKey[3] = char32Keccak256(optionSelected);
-			primaryKey[4] = stringKeccak256("LA VACA LOLA"); // Secret Phrase
+
+			// Option for randomizer or external phrase
+			Random rand = new Random();
+			long numb = Math.abs(rand.nextLong());
+			String witness = Long.toString(numb);
+			witness = "LA VACA LOLA";
+
+			primaryKey[4] = stringKeccak256(witness); // Secret Phrase
 			primaryKey[5] = dappData;
 			result0 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(primaryKey)));
-			
-			/* 
-			 * Clearly you will not send this to the Network BEFORE reveal
-			 * it is provided for testing purposes.
+
+			/*
+			 * Clearly you will not send this to the Network BEFORE reveal it is provided
+			 * for testing purposes.
 			 */
-			
-			hedera0 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSubmarineId", userAddress,
-					submarineAddress, 0, optionSelected, "LA VACA LOLA", dappData);
-			ExampleUtilities.showResult("Local Submarine Key  " + result0);
-			ExampleUtilities.showResult("Hedera Submarine Key " + hedera0);
+
+			// The call to the Hashgraph for the Primary Key
+			var contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getSubmarineId").addAddress(userAddress)
+							.addAddress(submarineAddress).addUint(0, 256).addBytes(castBytes32(optionSelected), 32)
+							.addString(witness).addBytes(dappData))
+					.execute();
+
+			hedera0 = Hex.toHexString(contractCallResult.getRawValue(0).toByteArray());
+
+			System.out.println("Local Submarine Key  " + result0);
+			System.out.println("Hedera Submarine Key " + hedera0);
 
 			secondKey[0] = addressKeccak256(userAddress);
 			secondKey[1] = addressKeccak256(submarineAddress);
-			secondKey[2] = stringKeccak256("LA VACA LOLA");
+			secondKey[2] = stringKeccak256(witness);
+
 			result1 = Hex.toHexString(HashUtil.sha3(ByteUtil.merge(secondKey)));
 
-			/* 
-			 * Clearly you will not send this to the Network BEFORE reveal
-			 * it is provided for testing purposes.
-			 */
+			// The call to the Hashgraph for the Secondary Key
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getSecondKey").addAddress(userAddress)
+							.addAddress(submarineAddress).addString(witness))
+					.execute();
+			if (contractCallResult.getErrorMessage() != null) {
+				System.out.println("error calling contract: " + contractCallResult.getErrorMessage());
+				return;
+			}
 
-			hedera1 = wrapper.callLocalAddress(mainSubmarine, 10000000, 50000, "getSecondKey", userAddress,
-					submarineAddress, "LA VACA LOLA");
-			ExampleUtilities.showResult("Local Secondary Key  " + result1);
-			ExampleUtilities.showResult("Hedera Second Key    " + hedera1);
+			hedera1 = Hex.toHexString(contractCallResult.getRawValue(0).toByteArray());
+
+			System.out.println("Local Secondary Key  " + result1);
+			System.out.println("Hedera Second Key    " + hedera1);
 
 			/*
 			 * Workflow
 			 * 
-			 * 2a) ON-CHAIN: The system can control voting times and reveal times. In this case
-			 * they are the same
+			 * 2a) ON-CHAIN: The system can control voting times and reveal times. In this
+			 * case they are the same
 			 */
 
-			Long voteReveal = wrapper.callLocalLong(mainSubmarine, 10000000, 50000, "minRevealTimestamp");
-			Date date = new Date(voteReveal * 1000L);
-			ExampleUtilities.showResult("Minimum Reveal Timestamp " + date.toString());
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("minRevealTimestamp")).execute();
+			if (contractCallResult.getErrorMessage() != null) {
+				System.out.println("error calling contract: " + contractCallResult.getErrorMessage());
+				return;
+			}
 
-			Long voteRead = wrapper.callLocalLong(mainSubmarine, 10000000, 50000, "minReadTimestamp");
+			Long voteReveal = contractCallResult.getLong(0);
+			Date date = new Date(voteReveal * 1000L);
+			System.out.println("Minimum Reveal Timestamp " + date.toString());
+
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("minReadTimestamp")).execute();
+			if (contractCallResult.getErrorMessage() != null) {
+				System.out.println("error calling contract: " + contractCallResult.getErrorMessage());
+				return;
+			}
+
+			Long voteRead = contractCallResult.getLong(0);
 			date = new Date(voteRead * 1000L);
-			ExampleUtilities.showResult("Minimum Read Timestamp   " + date.toString());
+			System.out.println("Minimum Read Timestamp   " + date.toString());
 
 			/*
 			 * Make sure that the options are in the Contract
 			 */
-			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "KERMIT")) {
-				ExampleUtilities.showResult("*** Creating KERMIT in Contract");
-				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "KERMIT");
-			}
-			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "ALF")) {
-				ExampleUtilities.showResult("*** Creating ALF in Contract");
-				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "ALF");
-			}
-			if (!wrapper.callLocalBoolean(mainSubmarine, 10000000, 50000, "isOption", "DORA")) {
-				ExampleUtilities.showResult("*** Creating DORA in Contract");
-				wrapper.callLong(mainSubmarine, 10000000, 0, "addOptions", "DORA");
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("isOption").addBytes(castBytes32("KERMIT"), 32))
+					.execute();
+			if (!contractCallResult.getBool(0)) {
+				System.out.println("*** Creating KERMIT in Contract");
+				new ContractExecuteTransaction(client).setGas(10_000_000).setContractId(mainSubmarine)
+						.setFunctionParameters(CallParams.function("addOptions").addBytes(castBytes32("KERMIT"), 32))
+						.execute();
 			}
 
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("isOption").addBytes(castBytes32("ALF"), 32)).execute();
+			if (!contractCallResult.getBool(0)) {
+				System.out.println("*** Creating ALF in Contract");
+				new ContractExecuteTransaction(client).setGas(10_000_000).setContractId(mainSubmarine)
+						.setFunctionParameters(CallParams.function("addOptions").addBytes(castBytes32("ALF"), 32))
+						.execute();
+			}
+
+			contractCallResult = new ContractCallQuery(client).setGas(10_000_000).setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("isOption").addBytes(castBytes32("DORA"), 32)).execute();
+			if (!contractCallResult.getBool(0)) {
+				System.out.println("*** Creating DORA in Contract");
+				new ContractExecuteTransaction(client).setGas(10_000_000).setContractId(mainSubmarine)
+						.setFunctionParameters(CallParams.function("addOptions").addBytes(castBytes32("DORA"), 32))
+						.execute();
+			}
+
+			Thread.sleep(5000);
 			/*
 			 * Workflow
 			 * 
 			 * 2b) ON-CHAIN: Register the Primary and secondary keys
 			 */
-			ExampleUtilities.showResult("*** Casting the vote");
-			wrapper.callLong(mainSubmarine, 10000000, 0, "registry", addressKeccak256(result0),
-					addressKeccak256(result1));
+			System.out.println("*** Casting the vote");
 
-			ExampleUtilities.showResult("*** countPoll   may revert if it is not time yet");
+			// Note that the option is not sent; the Submarine tries the options to unveil
+			// the vote.
+			var contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine)
+					.setFunctionParameters(
+							CallParams.function("registry")
+							.addBytes(Numeric.hexStringToByteArray(result0), 32)
+							.addBytes(Numeric.hexStringToByteArray(result1), 32))
+					.executeForRecord();
+			Thread.sleep(500);
+			var newIndex = contractExecuteResult.getCallResult().getLong(0);
+			System.out.println("New vote registered at index " + Long.toString(newIndex));
+
+			System.out.println("*** countPoll   may revert if it is not time yet");
+
 			try {
-				// voteNumber = wrapper.callLocalLong(mainSubmarine, 10000000, 50000,
-				// "countPoll");
-				voteNumber = wrapper.callLong(mainSubmarine, 10000000, 0, "countPoll");
-				ExampleUtilities.showResult("Number of Votes          " + Long.toString(voteNumber));
+				contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+						.setContractId(mainSubmarine).setFunctionParameters(CallParams.function("countPoll"))
+						.executeForRecord();
+				Thread.sleep(500);
+				voteNumber = contractExecuteResult.getCallResult().getLong(0);
+				System.out.println("Number of Votes          " + Long.toString(voteNumber));
 			} catch (Exception e) {
-				ExampleUtilities.showResult("*** YEP failed!! ");
+				System.out.println("*** YEP failed!! ");
 			}
-			ExampleUtilities.showResult("*** Waiting 30 seconds");
-			Thread.sleep(30000);
+
+			System.out.println("*** Waiting 40 seconds");
+			Thread.sleep(40000);
 
 			/*
 			 * Workflow
 			 * 
-			 * 3) ON-CHAIN: Address registered in the submarine sends the Reveal 
+			 * 3) ON-CHAIN: Address registered in the submarine sends the Reveal
 			 */
-			ExampleUtilities.showResult("*** Revealing the vote");
-			if (wrapper.callBoolean(mainSubmarine, 10000000, 0, "revealOption", addressKeccak256(result0), dappData,
-					"LA VACA LOLA", 0)) {
-				ExampleUtilities.showResult("*** Voting was revealed                          ");
-				ExampleUtilities.showResult("*** Waiting for Consensus to replicate the State ");				
-				Thread.sleep(3000);
+
+			System.out.println("*** Revealing the vote");
+			contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine)
+					.setFunctionParameters(
+							CallParams.function("revealOption")
+							.addBytes(Numeric.hexStringToByteArray(result0), 32)
+							.addBytes(dappData)
+							.addString(witness)
+							.addUint(0, 96))
+					.executeForRecord();
+
+			if (contractExecuteResult.getCallResult().getBool(0)) {
+				System.out.println("*** Voting was revealed                          ");
+				System.out.println("*** Waiting for Consensus to replicate the State ");
+				Thread.sleep(10000);
 			}
-			
+
 			/*
 			 * Workflow
 			 * 
 			 * 4) ONLINE: Get the results NOTE: Hedera makes block.timestamp = fair order of
-			 * the TX consensus; you need to submit CallFunctions, not CallLocal, to force an update 
-			 * of the status of the State variables (e.g. block.timestamp).
+			 * the TX consensus; you need to submit CallFunctions, not CallLocal, to force
+			 * an update of the status of the State variables (e.g. block.timestamp).
 			 */
-			
-			ExampleUtilities.showResult("*** Getting the vote");
-			voteNumber = wrapper.callLong(mainSubmarine, 10000000, 0, "countPoll");
-			ExampleUtilities.showResult("Number of Votes       " + Long.toString(voteNumber));
-			Long votesALF = wrapper.callLong(mainSubmarine, 10000000, 0, "getTally", "ALF");
-			ExampleUtilities.showResult("Votes for ALF " + Long.toString(votesALF));
-			Long votesKERMIT = wrapper.callLong(mainSubmarine, 10000000, 0, "getTally", "KERMIT");
-			ExampleUtilities.showResult("Votes for KERMIT " + Long.toString(votesKERMIT));
-			Long votesDORA = wrapper.callLong(mainSubmarine, 10000000, 0, "getTally", "DORA");
-			ExampleUtilities.showResult("Votes for DORA " + Long.toString(votesDORA));
+
+			System.out.println("*** Getting the vote");
+			contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine).setFunctionParameters(CallParams.function("countPoll"))
+					.executeForRecord();
+			voteNumber = contractExecuteResult.getCallResult().getLong(0);
+
+			System.out.println("Number of Votes       " + Long.toString(voteNumber));
+
+			contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getTally").addBytes(castBytes32("ALF"), 32))
+					.executeForRecord();
+			Long votesALF = contractExecuteResult.getCallResult().getLong(0);;
+			System.out.println("Votes for ALF " + Long.toString(votesALF));
+
+			contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getTally").addBytes(castBytes32("KERMIT"), 32))
+					.executeForRecord();
+			Long votesKERMIT = contractExecuteResult.getCallResult().getLong(0);;
+			System.out.println("Votes for KERMIT " + Long.toString(votesKERMIT));
+
+			contractExecuteResult = new ContractExecuteTransaction(client).setGas(10_000_000)
+					.setContractId(mainSubmarine)
+					.setFunctionParameters(CallParams.function("getTally").addBytes(castBytes32("DORA"), 32))
+					.executeForRecord();
+			Long votesDORA = contractExecuteResult.getCallResult().getLong(0);;
+			System.out.println("Votes for DORA " + Long.toString(votesDORA));
+
 		}
+
 	}
 
 	public static byte[] stringKeccak256(String value) {
@@ -345,6 +451,17 @@ public final class YellowSubmarine {
 		byte[] bytes = new byte[1];
 		bytes[0] = (byte) (value ? 1 : 0);
 		return bytes;
+	}
+
+	public static byte[] castBytes32(String param) {
+		byte[] ret = new byte[32];
+		byte[] bytes = ((String) param).getBytes(StandardCharsets.UTF_8);
+		if (bytes.length <= 32) {
+			System.arraycopy(bytes, 0, ret, 0, bytes.length);
+		} else {
+			System.arraycopy(bytes, 0, ret, 0, 32);
+		}
+		return ret;
 	}
 
 }
